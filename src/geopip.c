@@ -24,10 +24,6 @@ struct _geopip_t {
     // The poly we're testing in; set for good in ctr
     GEOSGeometry *geos_geom;
     const GEOSPreparedGeometry *geos_prepgeom;
-    
-    /* // Both of these are scratch vars for current point being contains-tested */
-    /* GEOSCoordSeq *geos_coseq; */
-    /* GEOSGeometry *geos_point; */
 };
 
 
@@ -53,14 +49,6 @@ geopip_new_wkt (const char *wkt_str)
     if (! self->geos_prepgeom)
         goto die;
 
-    /* self->geos_coseq = GEOSCoordSeq_create (0,0); */
-    /* if (! self->geos_coseq) */
-    /*     goto die; */
-
-    /* self->geos_point = GEOSGeom_createPoint (self->geos_coseq); */
-    /* if (! self->geos_point) */
-    /*     goto die; */
-
     GEOSWKTReader_destroy (reader);
     return self;
 
@@ -85,7 +73,6 @@ geopip_destroy (geopip_t **self_p)
             GEOSPreparedGeom_destroy (self->geos_prepgeom);
         if (self->geos_geom)
             GEOSGeom_destroy (self->geos_geom);
-        /* if (self->geos_coseq */
         //  Free object itself
         free (self);
         *self_p = NULL;
