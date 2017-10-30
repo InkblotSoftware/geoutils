@@ -13,6 +13,8 @@ Classes
 
 - __geodist__ - Functions for calculating distance between points
 - __geopip__ - Checks whether geo positions are within a WKT provided polygon
+- __geoutils__ - GEOS initialisation and shutdown functions (not usually
+  necessary for users)
 
 In order to avoid order-of-argument errors, positions are represented by
 the GUGeoPos struct. It's particularly useful with compound literals:
@@ -105,3 +107,23 @@ GEOUTILS_EXPORT bool
 GEOUTILS_EXPORT void
     geopip_test (bool verbose);
 ```
+
+**geoutils**
+```C
+//  Initialise GEOS with sane-default notice/error handlers.
+//  Use this if you're not already initialising GEOS yourself.
+//  You probably want to run at the top of main().
+GEOUTILS_EXPORT void
+    geoutils_initgeos (void);
+
+//  Close and finalise GEOS.
+//  Use this if you're not already stopping GEOS yourself.
+//  You probably want to run at the end of main().
+GEOUTILS_EXPORT void
+    geoutils_finishgeos (void);
+
+//  Self test of this class.
+GEOUTILS_EXPORT void
+    geoutils_test (bool verbose);
+```
+
