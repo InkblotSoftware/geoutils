@@ -1,0 +1,12 @@
+<class name = "geodist">
+
+  <method name = "haver" singleton = "1">
+    Returns the distance between two points in metres.
+    Calcualted using the haversine formula, so not accurate over
+    large distances.
+    <argument name = "pos1" type = "GUGeoPos" c_type = "GUGeoPos" />
+    <argument name = "pos2" type = "GUGeoPos" c_type = "GUGeoPos" />
+    <return type = "real" size = "8" />
+  </method>
+
+</class>

@@ -1,0 +1,16 @@
+<class name = "geopip">
+
+  <constructor name = "new wkt">
+    Construct from a Well Known Text text string
+    <argument name = "wkt_str" type = "string" />
+  </constructor>
+
+  <destructor />
+
+  <method name = "contains">
+    Does the polygon contain the provided point?
+    <argument name = "geopos" type = "GUGeoPos" c_type = "GUGeoPos" />
+    <return type = "boolean" />
+  </method>
+  
+</class>

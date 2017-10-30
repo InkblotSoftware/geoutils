@@ -1,0 +1,28 @@
+<project name = "geoutils"
+         description = "Misc geospatial utilities"
+         license = "MPLv2"
+         script = "zproject.gsl"
+         >
+  <include filename = "license.xml" />
+
+  <use project = "czmq" />
+  <use project = "geos_c"
+       header = "geos_c.h"
+       libname = "libgeos_c"
+       test = "GEOSGeom_createPoint" />
+
+  <class name = "geopip">
+    Testor for whether a geo point is within a constructor-set geo polygon
+  </class>
+
+  <class name = "geoutils">
+    Global setup and teardown static functions
+  </class>
+
+  <class name = "geodist">
+    Singlton functions for calculating the distance in metres between points
+  </class>
+
+  <header name = "geoutils_gugeopos" />
+
+</project>

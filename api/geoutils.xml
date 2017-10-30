@@ -1,0 +1,15 @@
+<class name = "geoutils">
+
+  <method name = "initgeos" singleton = "1">
+    Initialise GEOS with sane-default notice/error handlers.
+    Use this if you're not already initialising GEOS yourself.
+    You probably want to run at the top of main().
+  </method>
+
+  <method name = "finishgeos" singleton = "1">
+    Close and finalise GEOS.
+    Use this if you're not already stopping GEOS yourself.
+    You probably want to run at the end of main().
+  </method>
+
+</class>
