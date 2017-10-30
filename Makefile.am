@@ -40,6 +40,8 @@ EXTRA_DIST += \
 endif
 
 EXTRA_DIST += \
+    LICENSE \
+    README.md \
     src/geoutils_classes.h
 
 # NOTE: this "include" syntax is not a "make" but an "autotools" keyword,

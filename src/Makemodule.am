@@ -153,7 +153,6 @@ memcheck: src/geoutils_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_top
 	$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
 		--leak-check=full --show-reachable=yes --error-exitcode=1 \
 		--suppressions=$(srcdir)/src/.valgrind.supp \
-		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/geoutils_selftest
 	$(MAKE) check-empty-selftest-rw
 
@@ -161,20 +160,17 @@ memcheck-verbose: src/geoutils_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $
 	$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
 		--leak-check=full --show-reachable=yes --error-exitcode=1 \
 		--suppressions=$(srcdir)/src/.valgrind.supp \
-		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/geoutils_selftest -v
 	$(MAKE) check-empty-selftest-rw
 
 # Run the selftest binary under valgrind to check for performance leaks
 callcheck: src/geoutils_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_top_builddir)/$(SELFTEST_DIR_RO)
 	$(LIBTOOL) --mode=execute valgrind --tool=callgrind \
-		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/geoutils_selftest
 	$(MAKE) check-empty-selftest-rw
 
 callcheck-verbose: src/geoutils_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_top_builddir)/$(SELFTEST_DIR_RO)
 	$(LIBTOOL) --mode=execute valgrind --tool=callgrind \
-		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/geoutils_selftest -v
 	$(MAKE) check-empty-selftest-rw
 
