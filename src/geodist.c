@@ -84,8 +84,6 @@ geodist_test (bool verbose)
 {
     printf (" * geodist: ");
 
-    geoutils_initgeos ();
-
     //  @selftest
 
     // -- Zero
@@ -116,8 +114,6 @@ geodist_test (bool verbose)
         assert (targDist         <= calcDist * 1.002);
     }
 
-    geoutils_finishgeos ();
-    
     //  @end
     printf ("OK\n");
 }

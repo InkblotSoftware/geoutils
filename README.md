@@ -24,14 +24,16 @@ some_fun ((GUGeoPos){.lat=10.0, .lon=20.0});
 
 Like the rest of the API, GUGeoPos objects should only store degrees.
 
+Note that GEOS-using classes like geopip initialise GEOS during their ctrs
+using geoutils_initgeos(), so if you've already done so your
+notice/error handlers will be overwritten with the 'sane defaults' provided
+by this library.
+
 
 Example
 -------
 
 ```C
-// Start GEOS, probably put this at the top of main()
-geoutils_initgeos ();
-
 // -- geodist
 
 GUGeoPos pos1 = {.lat = 10.0, .lon=20.0};

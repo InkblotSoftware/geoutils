@@ -33,6 +33,8 @@ struct _geopip_t {
 geopip_t *
 geopip_new_wkt (const char *wkt_str)
 {
+    geoutils_initgeos ();
+
     assert (wkt_str);
     geopip_t *self = (geopip_t *) zmalloc (sizeof (geopip_t));
     assert (self);
@@ -122,9 +124,6 @@ geopip_test (bool verbose)
 {
     printf (" * geopip: ");
 
-    // Start by setting up geos (we assume all self tests finish geos after done)
-    geoutils_initgeos ();
-
     // -- First check it fails on broken wkt
     
     geopip_t *badself = geopip_new_wkt ("ASDFASDF");
@@ -156,7 +155,15 @@ geopip_test (bool verbose)
 
     geopip_destroy (&self);
 
-    // Be polite and finish geos
+    // -- Construct another to test initgeos etc behaviour
+
+    geopip_t *otherself = geopip_new_wkt ("POLYGON((1 1, 2 2, 1 2, 1 1))");
+    assert (otherself);
+    assert (! geopip_contains (otherself, (GUGeoPos){0,0}));
+    geopip_destroy (&otherself);
+
+    // -- Be polite and finish geos
+    
     geoutils_finishgeos ();
 
     printf ("OK\n");
