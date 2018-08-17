@@ -18,6 +18,8 @@
 
 #include "geoutils_classes.h"
 
+#include <geos_c.h>
+
 //  Structure of our class
 
 struct _geopip_t {

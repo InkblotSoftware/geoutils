@@ -21,7 +21,6 @@
 
 //  External dependencies
 #include <czmq.h>
-#include <geos_c.h>
 
 //  GEOUTILS version macros for compile-time API detection
 #define GEOUTILS_VERSION_MAJOR 0

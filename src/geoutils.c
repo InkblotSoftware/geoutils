@@ -18,6 +18,7 @@
 
 #include "geoutils_classes.h"
 
+#include <geos_c.h>
 
 //  --------------------------------------------------------------------------
 //  GEOS event handlers

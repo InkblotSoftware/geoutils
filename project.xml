@@ -7,6 +7,7 @@
 
   <use project = "czmq" />
   <use project = "geos_c"
+       implied = "1"
        header = "geos_c.h"
        libname = "libgeos_c"
        test = "GEOSGeom_createPoint" />
