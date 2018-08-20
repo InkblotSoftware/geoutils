@@ -47,12 +47,16 @@
 #       define GEOUTILS_EXPORT __declspec(dllimport)
 #   endif
 #   define GEOUTILS_PRIVATE
-#else
+#elif defined (__CYGWIN__)
 #   define GEOUTILS_EXPORT
+#   define GEOUTILS_PRIVATE
+#else
 #   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
 #       define GEOUTILS_PRIVATE __attribute__ ((visibility ("hidden")))
+#       define GEOUTILS_EXPORT __attribute__ ((visibility ("default")))
 #   else
 #       define GEOUTILS_PRIVATE
+#       define GEOUTILS_EXPORT
 #   endif
 #endif
 
@@ -81,9 +85,18 @@ typedef struct _geodist_t geodist_t;
 #endif // GEOUTILS_BUILD_DRAFT_API
 
 #ifdef GEOUTILS_BUILD_DRAFT_API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //  Self test for private classes
 GEOUTILS_EXPORT void
-    geoutils_private_selftest (bool verbose);
+    geoutils_private_selftest (bool verbose, const char *subtest);
+
+#ifdef __cplusplus
+}
+#endif
 #endif // GEOUTILS_BUILD_DRAFT_API
 
 #endif

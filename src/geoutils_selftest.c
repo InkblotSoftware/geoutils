@@ -20,22 +20,22 @@
 #include "geoutils_classes.h"
 
 typedef struct {
-    const char *testname;
-    void (*test) (bool);
+    const char *testname;           // test name, can be called from command line this way
+    void (*test) (bool);            // function to run the test (or NULL for private tests)
+    bool stable;                    // true if class is declared as stable
+    bool pub;                       // true if class is declared as public
+    const char *subtest;            // name of private subtest to run
 } test_item_t;
 
 static test_item_t
 all_tests [] = {
 #ifdef GEOUTILS_BUILD_DRAFT_API
 // Tests for draft public classes:
-    { "geopip", geopip_test },
-    { "geoutils", geoutils_test },
-    { "geodist", geodist_test },
+    { "geopip", geopip_test, false, true, NULL },
+    { "geoutils", geoutils_test, false, true, NULL },
+    { "geodist", geodist_test, false, true, NULL },
 #endif // GEOUTILS_BUILD_DRAFT_API
-#ifdef GEOUTILS_BUILD_DRAFT_API
-    { "private_classes", geoutils_private_selftest },
-#endif // GEOUTILS_BUILD_DRAFT_API
-    {0, 0}          //  Sentinel
+    {NULL, NULL, 0, 0, NULL}          //  Sentinel
 };
 
 //  -------------------------------------------------------------------------
@@ -47,7 +47,7 @@ test_item_t *
 test_available (const char *testname)
 {
     test_item_t *item;
-    for (item = all_tests; item->test; item++) {
+    for (item = all_tests; item->testname; item++) {
         if (streq (testname, item->testname))
             return item;
     }
@@ -63,10 +63,43 @@ test_runall (bool verbose)
 {
     test_item_t *item;
     printf ("Running geoutils selftests...\n");
-    for (item = all_tests; item->test; item++)
-        item->test (verbose);
+    for (item = all_tests; item->testname; item++) {
+        if (streq (item->testname, "private_classes"))
+            continue;
+        if (!item->subtest)
+            item->test (verbose);
+#ifdef GEOUTILS_BUILD_DRAFT_API // selftest is still in draft
+        else
+            geoutils_private_selftest (verbose, item->subtest);
+#endif // GEOUTILS_BUILD_DRAFT_API
+    }
 
     printf ("Tests passed OK\n");
+}
+
+static void
+test_list (void)
+{
+    test_item_t *item;
+    puts ("Available tests:");
+    for (item = all_tests; item->testname; item++)
+        printf ("    %-40s - %s	%s\n",
+            item->testname,
+            item->stable ? "stable" : "draft",
+            item->pub ? "public" : "private"
+        );
+}
+
+static void
+test_number (void)
+{
+    int n = 0;
+    test_item_t *item;
+    for (item = all_tests; item->testname; item++) {
+        if (! streq (item->testname, "private_classes"))
+            n++;
+    }
+    printf ("%d\n", n);
 }
 
 int
@@ -92,17 +125,13 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("3");
+            test_number ();
             return 0;
         }
         else
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
-            puts ("Available tests:");
-            puts ("    geopip\t\t- draft");
-            puts ("    geoutils\t\t- draft");
-            puts ("    geodist\t\t- draft");
-            puts ("    private_classes\t- draft");
+            test_list ();
             return 0;
         }
         else
@@ -140,7 +169,12 @@ main (int argc, char **argv)
 
     if (test) {
         printf ("Running geoutils test '%s'...\n", test->testname);
-        test->test (verbose);
+        if (!test->subtest)
+            test->test (verbose);
+#ifdef GEOUTILS_BUILD_DRAFT_API // selftest is still in draft
+        else
+            geoutils_private_selftest (verbose, test->subtest);
+#endif // GEOUTILS_BUILD_DRAFT_API
     }
     else
         test_runall (verbose);

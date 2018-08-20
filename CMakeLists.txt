@@ -6,7 +6,7 @@
 ########################################################################
 # Project setup
 ########################################################################
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 project(geoutils)
 enable_language(C)
 enable_testing()
@@ -15,6 +15,8 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # Select flags
 SET(CMAKE_C_FLAGS_RELEASE "-O3")
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/builds/cmake/Modules)
 
 # Will be used to add flags to pkg-config useful when apps want to statically link
 set(pkg_config_libs_private "")
@@ -67,7 +69,7 @@ if (MSVC)
 endif()
 
 # specific case of windows UWP
-if( ${CMAKE_SYSTEM_NAME} STREQUAL "WindowsStore" AND ${CMAKE_SYSTEM_VERSION} STREQUAL "10.0")
+if( "${CMAKE_SYSTEM_NAME}" STREQUAL "WindowsStore" AND "${CMAKE_SYSTEM_VERSION}" STREQUAL "10.0")
   ADD_DEFINITIONS(-DZMQ_HAVE_WINDOWS_UWP)
   ADD_DEFINITIONS(-D_WIN32_WINNT=_WIN32_WINNT_WIN10)
 endif()
@@ -123,6 +125,16 @@ ELSE (GEOS_C_FOUND)
 ENDIF (GEOS_C_FOUND)
 
 ########################################################################
+# version
+########################################################################
+set(GEOUTILS_VERSION_MAJOR 0)
+set(GEOUTILS_VERSION_MINOR 0)
+set(GEOUTILS_VERSION_PATCH 0)
+set(GEOUTILS_VERSION "${GEOUTILS_VERSION_MAJOR}.${GEOUTILS_VERSION_MINOR}.${GEOUTILS_VERSION_PATCH}")
+message(STATUS "Detected GEOUTILS Version - ${GEOUTILS_VERSION}")
+
+
+########################################################################
 # includes
 ########################################################################
 set (geoutils_headers
@@ -144,6 +156,8 @@ install(FILES ${geoutils_headers} DESTINATION include)
 ########################################################################
 # library
 ########################################################################
+
+
 include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include")
 set (geoutils_sources
 )
@@ -163,28 +177,96 @@ IF (ENABLE_DRAFTS)
 ENDIF (ENABLE_DRAFTS)
 
 source_group("Source Files" FILES ${geoutils_sources})
-if (NOT DEFINED BUILD_SHARED_LIBS)
-    SET(BUILD_SHARED_LIBS ON)
-endif()
-add_library(geoutils ${geoutils_sources})
-set_target_properties(geoutils
-    PROPERTIES DEFINE_SYMBOL "GEOUTILS_EXPORTS"
-)
-set_target_properties (geoutils
-    PROPERTIES SOVERSION "0"
-)
-set_target_properties (geoutils
-    PROPERTIES VERSION "0.0.0"
-)
-target_link_libraries(geoutils
-    ${ZEROMQ_LIBRARIES} ${MORE_LIBRARIES}
-)
 
-install(TARGETS geoutils
+
+option(GEOUTILS_BUILD_SHARED "Whether or not to build the shared object" ON)
+option(GEOUTILS_BUILD_STATIC "Whether or not to build the static archive" ON)
+
+if (NOT GEOUTILS_BUILD_SHARED AND NOT GEOUTILS_BUILD_STATIC)
+  message(FATAL_ERROR "Neither static nor shared library build enabled")
+endif()
+
+IF (NOT MSVC)
+  # avoid building everything twice for shared + static
+  # only on *nix, as Windows needs different preprocessor defines in static builds
+  add_library (geoutils_objects OBJECT ${geoutils_sources})
+  set_property(TARGET geoutils_objects PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF (NOT MSVC)
+
+# shared
+if (GEOUTILS_BUILD_SHARED)
+  IF (MSVC)
+    add_library(geoutils SHARED ${geoutils_sources})
+  ELSE (MSVC)
+    add_library(geoutils SHARED $<TARGET_OBJECTS:geoutils_objects>)
+  ENDIF (MSVC)
+
+  set_target_properties (geoutils PROPERTIES
+    PUBLIC_HEADER "${public_headers}"
+    DEFINE_SYMBOL "GEOUTILS_EXPORTS"
+    SOVERSION "0"
+    VERSION "${GEOUTILS_VERSION}"
+    COMPILE_DEFINITIONS "DLL_EXPORT"
+    OUTPUT_NAME "geoutils"
+    PREFIX "lib"
+  )
+
+  target_link_libraries(geoutils
+    PUBLIC ${MORE_LIBRARIES}
+  )
+
+  install(TARGETS geoutils
+    EXPORT geoutils-targets
     LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
     ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
-    RUNTIME DESTINATION bin              # .dll file
-)
+    RUNTIME DESTINATION bin                # .dll file
+  )
+
+  target_include_directories(geoutils
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+endif()
+
+# static
+if (GEOUTILS_BUILD_STATIC)
+  IF (MSVC)
+    add_library(geoutils-static STATIC ${geoutils_sources})
+  ELSE (MSVC)
+    add_library(geoutils-static STATIC $<TARGET_OBJECTS:geoutils_objects>)
+  ENDIF (MSVC)
+
+  set_target_properties(geoutils-static PROPERTIES
+    PUBLIC_HEADER "${public_headers}"
+    COMPILE_DEFINITIONS "GEOUTILS_STATIC"
+    OUTPUT_NAME "geoutils"
+    PREFIX "lib"
+  )
+
+  target_link_libraries(geoutils-static
+    PUBLIC ${MORE_LIBRARIES}
+  )
+
+  install(TARGETS geoutils-static
+    EXPORT geoutils-targets
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
+    RUNTIME DESTINATION bin                # .dll file
+  )
+
+  target_include_directories(geoutils-static
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+  target_compile_definitions(geoutils-static
+    PUBLIC GEOUTILS_STATIC
+  )
+
+endif()
+
+
 
 ########################################################################
 # pkgconfig
@@ -210,12 +292,41 @@ install(
 )
 
 ########################################################################
+# installer
+########################################################################
+include(CMakePackageConfigHelpers)
+if (WIN32)
+  set(CMAKECONFIG_INSTALL_DIR "CMake" CACHE STRING "install path for geoutilsConfig.cmake")
+else()
+  # GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
+  set(CMAKECONFIG_INSTALL_DIR "share/cmake/geoutils" CACHE STRING "install path for geoutilsConfig.cmake")
+endif()
+
+if (NOT CMAKE_VERSION VERSION_LESS 3.0)
+  export(EXPORT geoutils-targets
+         FILE "${CMAKE_CURRENT_BINARY_DIR}/geoutilsTargets.cmake")
+endif()
+configure_package_config_file(builds/cmake/Config.cmake.in
+                              "${CMAKE_CURRENT_BINARY_DIR}/geoutilsConfig.cmake"
+                              INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/geoutilsConfigVersion.cmake
+                                 VERSION ${GEOUTILS_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
+install(EXPORT geoutils-targets
+        FILE geoutilsTargets.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/geoutilsConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/geoutilsConfigVersion.cmake
+              DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+
+########################################################################
 # executables
 ########################################################################
 add_executable(
     geoutils_selftest
     "${SOURCE_DIR}/src/geoutils_selftest.c"
 )
+if (TARGET geoutils)
 target_link_libraries(
     geoutils_selftest
     geoutils
@@ -224,6 +335,17 @@ target_link_libraries(
     ${GEOS_C_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
+endif()
+if (NOT TARGET geoutils AND TARGET geoutils-static)
+target_link_libraries(
+    geoutils_selftest
+    geoutils-static
+    ${LIBZMQ_LIBRARIES}
+    ${CZMQ_LIBRARIES}
+    ${GEOS_C_LIBRARIES}
+    ${OPTIONAL_LIBRARIES}
+)
+endif()
 
 ########################################################################
 # tests
@@ -316,6 +438,8 @@ add_custom_command(
     TARGET  distclean
 )
 
+include(ClangFormat OPTIONAL)
+
 ########################################################################
 # summary
 ########################################################################
@@ -328,6 +452,8 @@ message (STATUS "  C compiler        :   ${CMAKE_C_COMPILER}")
 message (STATUS "  Debug C flags     :   ${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS}")
 message (STATUS "  Release C flags   :   ${CMAKE_C_FLAGS_RELEASE} ${CMAKE_C_FLAGS}")
 message (STATUS "  Build type        :   ${CMAKE_BUILD_TYPE}")
+message (STATUS "  Static build      :   ${GEOUTILS_BUILD_STATIC}")
+message (STATUS "  Shared build      :   ${GEOUTILS_BUILD_SHARED}")
 IF (ENABLE_DRAFTS)
 message (STATUS "  Draft API         :   Yes")
 ELSE (ENABLE_DRAFTS)
