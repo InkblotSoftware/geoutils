@@ -12,7 +12,7 @@ Name: libgeoutils
 Description: Misc geospatial utilities
 Version: @VERSION@
 
-Requires:@pkgconfig_name_libzmq@ @pkgconfig_name_libczmq@ @pkgconfig_name_libgeos_c@
+Requires:@pkgconfig_name_libgeos_c@
 
 Libs: -L${libdir} -lgeoutils
 Cflags: -I${includedir} @pkg_config_defines@

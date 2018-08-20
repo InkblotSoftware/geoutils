@@ -25,7 +25,7 @@
 //
 
 void
-geoutils_private_selftest (bool verbose)
+geoutils_private_selftest (bool verbose, const char *subtest)
 {
 }
 /*

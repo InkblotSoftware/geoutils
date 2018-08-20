@@ -38,7 +38,7 @@ geopip_new_wkt (const char *wkt_str)
     geoutils_initgeos ();
 
     assert (wkt_str);
-    geopip_t *self = (geopip_t *) zmalloc (sizeof (geopip_t));
+    geopip_t *self = (geopip_t *) calloc (1, sizeof (geopip_t));
     assert (self);
     //  Initialize class properties here
 
@@ -138,19 +138,24 @@ geopip_test (bool verbose)
     GUGeoPos parisPos  = { .lat=48.8567, .lon=2.3508 };
 
     // Box around London
-    char *wkt = zsys_sprintf ("POLYGON (( %f %f, %f %f,"
-                                         "%f %f, %f %f,"
-                                         "%f %f ))",
-                              londonPos.lon-1, londonPos.lat+1,
-                              londonPos.lon+1, londonPos.lat+1,
-                              londonPos.lon+1, londonPos.lat-1,
-                              londonPos.lon-1, londonPos.lat-1,
-                              londonPos.lon-1, londonPos.lat+1);
-    assert (wkt);
+    char *wkt = (char *) calloc (1, 1000);
+    {
+        int num = snprintf (wkt, 1000,
+                            "POLYGON (( %f %f, %f %f,"
+                                       "%f %f, %f %f,"
+                                       "%f %f ))",
+                           londonPos.lon-1, londonPos.lat+1,
+                           londonPos.lon+1, londonPos.lat+1,
+                           londonPos.lon+1, londonPos.lat-1,
+                           londonPos.lon-1, londonPos.lat-1,
+                           londonPos.lon-1, londonPos.lat+1);
+        assert (num <= 1000);
+    }
     
     geopip_t *self = geopip_new_wkt (wkt);
     assert (self);
-    zstr_free (&wkt);
+    free (wkt);
+    wkt = NULL;
 
     assert (geopip_contains (self, londonPos));
     assert (! geopip_contains (self, parisPos));

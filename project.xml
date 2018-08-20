@@ -5,7 +5,6 @@
          >
   <include filename = "license.xml" />
 
-  <use project = "czmq" />
   <use project = "geos_c"
        implied = "1"
        header = "geos_c.h"

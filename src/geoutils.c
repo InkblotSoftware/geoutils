@@ -18,6 +18,8 @@
 
 #include "geoutils_classes.h"
 
+#include <stdarg.h>
+
 #include <geos_c.h>
 
 //  --------------------------------------------------------------------------

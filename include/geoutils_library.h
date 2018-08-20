@@ -20,7 +20,6 @@
 //  Set up environment for the application
 
 //  External dependencies
-#include <czmq.h>
 
 //  GEOUTILS version macros for compile-time API detection
 #define GEOUTILS_VERSION_MAJOR 0
@@ -31,6 +30,26 @@
     ((major) * 10000 + (minor) * 100 + (patch))
 #define GEOUTILS_VERSION \
     GEOUTILS_MAKE_VERSION(GEOUTILS_VERSION_MAJOR, GEOUTILS_VERSION_MINOR, GEOUTILS_VERSION_PATCH)
+
+// czmq_prelude.h bits
+#if !defined (__WINDOWS__)
+#   if (defined WIN32 || defined _WIN32 || defined WINDOWS || defined _WINDOWS)
+#       undef __WINDOWS__
+#       define __WINDOWS__
+#   endif
+#endif
+
+// Windows MSVS doesn't have stdbool
+#if (defined (_MSC_VER) && !defined (true))
+#   if (!defined (__cplusplus) && (!defined (true)))
+#       define true 1
+#       define false 0
+        typedef char bool;
+#   endif
+#else
+#   include <stdbool.h>
+#endif
+// czmq_prelude.h bits
 
 #if defined (__WINDOWS__)
 #   if defined GEOUTILS_STATIC

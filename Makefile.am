@@ -7,12 +7,10 @@ ACLOCAL_AMFLAGS = -I config
 
 
 AM_CPPFLAGS = \
-    ${libzmq_CFLAGS} \
-    ${czmq_CFLAGS} \
     ${geos_c_CFLAGS} \
     -I$(srcdir)/include
 
-project_libs = ${libzmq_LIBS} ${czmq_LIBS} ${geos_c_LIBS}
+project_libs = ${geos_c_LIBS}
 
 SUBDIRS = doc
 SUBDIRS += include
@@ -33,8 +31,6 @@ DISTCLEANFILES =
 
 if ENABLE_DIST_CMAKEFILES
 EXTRA_DIST += \
-    Findlibzmq.cmake \
-    Findczmq.cmake \
     Findgeos_c.cmake \
     builds/cmake/Modules/ClangFormat.cmake \
     builds/cmake/clang-format-check.sh.in \

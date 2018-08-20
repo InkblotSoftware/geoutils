@@ -89,30 +89,6 @@ list(APPEND CMAKE_MODULE_PATH "${SOURCE_DIR}")
 set(OPTIONAL_LIBRARIES)
 
 ########################################################################
-# LIBZMQ dependency
-########################################################################
-find_package(libzmq REQUIRED)
-IF (LIBZMQ_FOUND)
-    include_directories(${LIBZMQ_INCLUDE_DIRS})
-    list(APPEND MORE_LIBRARIES ${LIBZMQ_LIBRARIES})
-    set(pkg_config_libs_private "${pkg_config_libs_private} -lzmq")
-ELSE (LIBZMQ_FOUND)
-    message( FATAL_ERROR "libzmq not found." )
-ENDIF (LIBZMQ_FOUND)
-
-########################################################################
-# CZMQ dependency
-########################################################################
-find_package(czmq REQUIRED)
-IF (CZMQ_FOUND)
-    include_directories(${CZMQ_INCLUDE_DIRS})
-    list(APPEND MORE_LIBRARIES ${CZMQ_LIBRARIES})
-    set(pkg_config_libs_private "${pkg_config_libs_private} -lczmq")
-ELSE (CZMQ_FOUND)
-    message( FATAL_ERROR "czmq not found." )
-ENDIF (CZMQ_FOUND)
-
-########################################################################
 # GEOS_C dependency
 ########################################################################
 find_package(geos_c REQUIRED)
@@ -330,8 +306,6 @@ if (TARGET geoutils)
 target_link_libraries(
     geoutils_selftest
     geoutils
-    ${LIBZMQ_LIBRARIES}
-    ${CZMQ_LIBRARIES}
     ${GEOS_C_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
@@ -340,8 +314,6 @@ if (NOT TARGET geoutils AND TARGET geoutils-static)
 target_link_libraries(
     geoutils_selftest
     geoutils-static
-    ${LIBZMQ_LIBRARIES}
-    ${CZMQ_LIBRARIES}
     ${GEOS_C_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
